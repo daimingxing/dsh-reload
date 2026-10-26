@@ -649,13 +649,13 @@ window.__ModuleLoader__.load({
      * owner props（这里是 `{ wide }`），不会传 `t`——从 props 读会让组件在渲染
      * 瞬间抛错，整个槽位条目被移除。
      */
-    function SidebarButton() {
+    function SidebarButton({ t }) {
       useSharedState()
 
       if (!state.sidebarVisible) return null
 
       const busy = state.reloading || state.restarting
-      const label = state.reloading ? currentT('action.reloading') : currentT('action.reload')
+      const label = state.reloading ? t('action.reloading') : t('action.reload')
 
       return h(
         'button',
@@ -681,7 +681,7 @@ window.__ModuleLoader__.load({
      * 同样从闭包取 `t`：`settings.general.item` 的 owner props 是空接口
      * （`children?: never`），不传任何东西，读 props.t 会立即崩掉该行。
      */
-    function SectionRow() {
+    function SectionRow({ t }) {
       useSharedState()
       const [modal, setModal] = React.useState(null)
       const busy = state.reloading || state.restarting
@@ -692,7 +692,7 @@ window.__ModuleLoader__.load({
         void (async () => {
           try {
             const data = await api('pending-restart', 'POST')
-            if (!cancelled && data?.pending) showToast(currentT('toast.restarted'))
+            if (!cancelled && data?.pending) showToast(t('toast.restarted'))
           } catch {
             // 读不到标记不影响任何功能。
           }
@@ -700,7 +700,8 @@ window.__ModuleLoader__.load({
         return () => {
           cancelled = true
         }
-      }, [t])
+        // 依赖为空：`t` 由槽位的 `locale: NS` 声明注入，locale 变化时框架会重挂组件。
+      }, [])
 
       const closeModal = React.useCallback(() => setModal(null), [])
       const confirmRestart = React.useCallback(() => {
@@ -723,7 +724,7 @@ window.__ModuleLoader__.load({
 
       const pendingHint =
         Array.isArray(state.pending) && state.pending.length > 0
-          ? currentT('pending.hint').replace('{n}', String(state.pending.length))
+          ? t('pending.hint').replace('{n}', String(state.pending.length))
           : null
 
       return h(
@@ -735,8 +736,8 @@ window.__ModuleLoader__.load({
           h(
             'div',
             null,
-            h('div', { className: 'dshr-section-title' }, currentT('section.title')),
-            h('div', { className: 'dshr-section-desc' }, currentT('section.desc')),
+            h('div', { className: 'dshr-section-title' }, t('section.title')),
+            h('div', { className: 'dshr-section-desc' }, t('section.desc')),
             pendingHint !== null ? h('div', { className: 'dshr-pending' }, pendingHint) : null,
           ),
           h(
@@ -746,8 +747,8 @@ window.__ModuleLoader__.load({
               className: 'dshr-switch',
               role: 'switch',
               'aria-checked': state.sidebarVisible ? 'true' : 'false',
-              'aria-label': currentT('section.sidebarToggle'),
-              title: currentT('section.sidebarToggle'),
+              'aria-label': t('section.sidebarToggle'),
+              title: t('section.sidebarToggle'),
               onClick: toggleSidebar,
             },
             null,
@@ -765,7 +766,7 @@ window.__ModuleLoader__.load({
               onClick: () => void doHotReload(),
             },
             h(ReloadIcon, { spinning: state.reloading }),
-            state.reloading ? currentT('action.reloading') : currentT('action.reload'),
+            state.reloading ? t('action.reloading') : t('action.reload'),
           ),
           h(
             'button',
@@ -775,7 +776,7 @@ window.__ModuleLoader__.load({
               disabled: busy,
               onClick: () => void beginRestart(setModal),
             },
-            currentT('action.restart'),
+            t('action.restart'),
           ),
         ),
         modal !== null
