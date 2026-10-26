@@ -1,0 +1,9 @@
+# dsh-reload bundle patch.
+#
+# 单行 insert 挂载 host 半边（index.js）；浏览器半边经 package.json 的
+# dsh.client + exports["./client"] 自动进入 client 模块图。
+#
+# 本插件不改动任何既有 profile 配置：不碰 hmr 行、不碰 root 选项。
+- insert:
+    - id: reload
+      name: dsh-reload

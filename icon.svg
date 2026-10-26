@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Reload">
+  <!-- 环形箭头：两段圆弧 + 两个箭头头部，表达「重新加载」 -->
+  <g fill="none" stroke="#247bbf" stroke-width="6" stroke-linecap="round">
+    <path d="M 46.5 23.5 A 16 16 0 1 0 48 32" />
+  </g>
+  <g fill="#247bbf">
+    <path d="M 44 12 L 58 16 L 47 26 Z" />
+  </g>
+  <circle cx="32" cy="32" r="6" fill="#247bbf" opacity="0.22" />
+</svg>

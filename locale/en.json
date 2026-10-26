@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Hot Reload",
+    "description": "Reload plugins whose files changed without restarting the client, plus an optional one-click DSH restart."
+  }
+}
