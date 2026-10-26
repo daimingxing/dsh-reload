@@ -43,6 +43,7 @@ window.__ModuleLoader__.load({
       'section.title': '热重载',
       'section.desc': '重新加载文件有改动的插件，不中断会话。',
       'section.sidebarToggle': '在侧边栏显示热重载按钮',
+      'section.sidebarToggleDesc': '关闭后只隐藏侧边栏底部那个图标，本页的两个按钮不受影响。',
       'toast.unchanged': '没有检测到改动（可能还没重新构建）',
       'toast.reloaded': '已热重载 {n} 个插件',
       'toast.reloadFailed': '热重载失败：{message}',
@@ -78,6 +79,7 @@ window.__ModuleLoader__.load({
       'section.title': 'Hot reload',
       'section.desc': 'Reload plugins whose files changed without interrupting sessions.',
       'section.sidebarToggle': 'Show the hot reload button in the sidebar',
+      'section.sidebarToggleDesc': 'Turning this off only hides the sidebar icon; both buttons on this page keep working.',
       'toast.unchanged': 'No changes detected (the build may not have run yet)',
       'toast.reloaded': 'Hot reloaded {n} plugin(s)',
       'toast.reloadFailed': 'Hot reload failed: {message}',
@@ -127,6 +129,11 @@ window.__ModuleLoader__.load({
 .dshr-section-title{font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary)}
 .dshr-section-desc{margin-top:4px;font-size:12px;line-height:1.6;color:var(--dsw-alias-label-secondary)}
 .dshr-section-actions{display:flex;gap:8px;flex-wrap:wrap}
+.dshr-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding-top:10px;margin-top:2px;border-top:1px solid var(--dsw-alias-border-l1)}
+.dshr-toggle-label{min-width:0}
+.dshr-toggle-title{font-size:13px;color:var(--dsw-alias-label-primary)}
+.dshr-toggle-desc{margin-top:2px;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-secondary)}
 .dshr-pending{margin-top:2px;font-size:12px;color:var(--dsw-alias-state-warning-primary,#c98a00)}
 .dshr-switch{position:relative;display:inline-flex;align-items:center;width:34px;height:20px;flex:none;
   border-radius:999px;border:none;cursor:pointer;padding:0;background:var(--dsw-alias-bg-layer-3,#3a3a3a);
@@ -730,30 +737,9 @@ window.__ModuleLoader__.load({
       return h(
         'div',
         { className: 'dshr-section' },
-        h(
-          'div',
-          { className: 'dshr-section-head' },
-          h(
-            'div',
-            null,
-            h('div', { className: 'dshr-section-title' }, t('section.title')),
-            h('div', { className: 'dshr-section-desc' }, t('section.desc')),
-            pendingHint !== null ? h('div', { className: 'dshr-pending' }, pendingHint) : null,
-          ),
-          h(
-            'button',
-            {
-              type: 'button',
-              className: 'dshr-switch',
-              role: 'switch',
-              'aria-checked': state.sidebarVisible ? 'true' : 'false',
-              'aria-label': t('section.sidebarToggle'),
-              title: t('section.sidebarToggle'),
-              onClick: toggleSidebar,
-            },
-            null,
-          ),
-        ),
+        h('div', { className: 'dshr-section-title' }, t('section.title')),
+        h('div', { className: 'dshr-section-desc' }, t('section.desc')),
+        pendingHint !== null ? h('div', { className: 'dshr-pending' }, pendingHint) : null,
         h(
           'div',
           { className: 'dshr-section-actions' },
@@ -777,6 +763,31 @@ window.__ModuleLoader__.load({
               onClick: () => void beginRestart(setModal),
             },
             t('action.restart'),
+          ),
+        ),
+        // 侧边栏按钮的显示开关。做成独立一行并带可见文字标签：
+        // 之前把它放在标题右侧、只有 tooltip，用户看不出它是做什么的。
+        h(
+          'div',
+          { className: 'dshr-toggle-row' },
+          h(
+            'div',
+            { className: 'dshr-toggle-label' },
+            h('div', { className: 'dshr-toggle-title' }, t('section.sidebarToggle')),
+            h('div', { className: 'dshr-toggle-desc' }, t('section.sidebarToggleDesc')),
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: 'dshr-switch',
+              role: 'switch',
+              'aria-checked': state.sidebarVisible ? 'true' : 'false',
+              'aria-label': t('section.sidebarToggle'),
+              title: t('section.sidebarToggle'),
+              onClick: toggleSidebar,
+            },
+            null,
           ),
         ),
         modal !== null
