@@ -27,7 +27,14 @@ console.log('  client.js 的模块 id:', idMatch?.[1] ?? '(未找到)')
 console.log('  id 与包名一致  :', idMatch?.[1] === pkg.name ? '是' : '否 ← 需要修正')
 
 // 槽位 id 是否与注册时一致。
-for (const slot of ['sidebar.footer.action', 'plugins.bundle.config', 'settings.action']) {
+for (const slot of [
+  'sidebar.footer.action',
+  'conversation.header.leading',
+  'shell.overlay',
+  'sidebar.panellist.actions',
+  'plugins.bundle.config',
+  'settings.action',
+]) {
   const used = clientSource.includes(`name: '${slot}'`)
   console.log(`  注册槽位 ${slot}: ${used ? '已引用' : '未引用'}`)
 }

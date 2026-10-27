@@ -185,9 +185,12 @@ function renderTree(node, depth = 0) {
  * 按槽位真实 owner props 构造渲染入参。
  *
  * 宿主各槽位传的东西不同，这里逐个照抄（不是「猜」）：
- *  - `sidebar.footer.action` → `{ wide }`
- *  - `plugins.bundle.config`  → `{ view, form? }`，插件页按 `view: 'page'` 渲染
- *  - `settings.action`        → 空接口（`children?: never`），只带 `t`
+ *  - `sidebar.footer.action`      → `{ wide }`
+ *  - `plugins.bundle.config`      → `{ view, form? }`，插件页按 `view: 'page'` 渲染
+ *  - `settings.action`            → 空接口（`children?: never`），只带 `t`
+ *  - `conversation.header.leading` → 空接口，只带 `t`
+ *  - `shell.overlay`              → 无 owner props，只带 `t`
+ *  - `sidebar.panellist.actions`  → `{ entries, onOpen, onPinnedChange, onDismiss }`
  *
  * `locale: NS` 声明会让框架再注入 `t`，所以每个场景都带 `t`。
  * @param slot - 槽位名。
@@ -197,6 +200,15 @@ function renderTree(node, depth = 0) {
 function propsForSlot(slot, t) {
   if (slot === 'sidebar.footer.action') return { wide: true, t }
   if (slot === 'plugins.bundle.config') return { view: 'page', t }
+  if (slot === 'sidebar.panellist.actions') {
+    return {
+      entries: [],
+      onOpen: () => {},
+      onPinnedChange: () => {},
+      onDismiss: () => {},
+      t,
+    }
+  }
   return { t }
 }
 

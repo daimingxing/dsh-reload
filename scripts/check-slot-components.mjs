@@ -44,6 +44,23 @@ const EXPECTATIONS = [
     order: 10,
     component: 'SettingsHeaderActions',
   },
+  {
+    slot: 'conversation.header.leading',
+    // single 槽位：没有 id / order，注册选项只有 name + locale。
+    component: 'HeaderButton',
+  },
+  {
+    slot: 'shell.overlay',
+    id: 'dsh-reload:floating',
+    order: 900,
+    component: 'FloatingButton',
+  },
+  {
+    slot: 'sidebar.panellist.actions',
+    id: 'dsh-reload:more-menu',
+    order: 100,
+    component: 'MoreMenuItem',
+  },
 ]
 
 /**
@@ -87,7 +104,10 @@ for (const { slot, id, key, order, component } of EXPECTATIONS) {
   }
 
   // 2) 该 register 调用必须带 locale（否则组件拿不到 t）
-  const anchor = id !== undefined ? `id: '${id}'` : `key: PKG_NAME`
+  //
+  // single 槽位（如 conversation.header.leading）没有 id，注册选项只有
+  // name + locale，所以锚点退回 `name: '<slot>'`。
+  const anchor = id !== undefined ? `id: '${id}'` : key !== undefined ? `key: PKG_NAME` : `name: '${slot}'`
   const at = source.indexOf(anchor)
   const registerBlock = at === -1 ? '' : source.slice(Math.max(0, at - 200), at + 220)
   if (!registerBlock.includes('locale: NS')) {
