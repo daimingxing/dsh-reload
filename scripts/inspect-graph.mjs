@@ -8,7 +8,9 @@
  */
 import fs from 'node:fs'
 
-const RUNTIME = process.env.DSH_RUNTIME_DIR ?? 'E:/dsh-desktop/resources/app.asar/dsh'
+import { requireRuntime } from './lib/runtime.mjs'
+
+const RUNTIME = requireRuntime('inspect-graph')
 
 // 直接解析 dsh-reload 的包清单，确认声明本身没问题。
 const pkgPath = new URL('../package.json', import.meta.url)

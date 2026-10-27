@@ -11,24 +11,24 @@
  *
  * 用法（在桌面安装目录前提下）：
  *   ELECTRON_RUN_AS_NODE=1 "<DeepSeek Harness.exe>" --expose-internals scripts/check-schema.mjs
+ *
+ * 安装位置会自动探测几个常见路径；装在别处时用 DSH_RUNTIME_DIR 指定。
  */
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { requireRuntime } from './lib/runtime.mjs'
+
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const RUNTIME = process.env.DSH_RUNTIME_DIR ?? 'E:/dsh-desktop/resources/app.asar/dsh'
+const RUNTIME = requireRuntime('check-schema')
 
 const toolsEntry = path.join(
   RUNTIME,
   'node_modules/@deepseek-ai/dsh-tools/lib/index.js',
 )
 
-if (!fs.existsSync(toolsEntry)) {
-  console.error(`找不到 Host 的 dsh-tools：${toolsEntry}`)
-  console.error('用 DSH_RUNTIME_DIR 环境变量指向 dsh 包根目录。')
-  process.exit(2)
-}
+console.log(`Host 运行时：${RUNTIME}`)
 
 const { assertSupportedJsonSchema, assertObjectJsonSchema } = await import(
   new URL(`file://${toolsEntry.replaceAll('\\', '/')}`).href
