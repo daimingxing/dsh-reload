@@ -1,9 +1,13 @@
 {
   "name": "dsh-reload",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Hot-reload changed DeepSeek Harness plugins and optionally restart the desktop client, without opening and closing DSH by hand.",
   "type": "module",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daimingxing/dsh-reload.git"
+  },
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
@@ -14,12 +18,12 @@
   "files": [
     "index.js",
     "client.js",
-    "lib/*.js",
-    "lib/*.mjs",
+    "lib",
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "keywords": [
     "dsh",
@@ -47,7 +51,7 @@
         "@deepseek-ai/dsh-client-ui-sidebar",
         "@deepseek-ai/dsh-client-ui-settings-general",
         "@deepseek-ai/dsh-client-ui-plugin-manager",
-        "@deepseek-ai/dsh-client-ui-conversation"
+        "@deepseek-ai/dsh-client-ui-layout"
       ]
     }
   }
