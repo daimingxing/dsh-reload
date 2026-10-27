@@ -1,0 +1,6 @@
+url: https://github.com/daimingxing/dsh-reload
+name: daimingxing/dsh-reload
+category: dev
+description:
+  en: 'Hot reload plus one-click client restart for DSH plugin development: reloading takes no target and calls the host HMR reconcile pass instead of reimplementing cache eviction, so stale modules refresh with the import graph followed and untouched plugins keep their state; restart covers package.json edits and dependency swaps, runs outside the host process, and is refused while sessions, jobs or terminals are live.'
+  zh: '面向 DSH 插件开发的热重载 + 一键重启客户端：重载不需要指定目标，直接调用宿主 HMR reconcile 而非自己实现清缓存，陈旧的模块会连同 import 图一起刷新，没被碰到的插件保留状态；重启处理改 package.json、换依赖这类改动，运行在宿主进程之外，有会话/后台任务/终端在跑时拒绝执行。'
