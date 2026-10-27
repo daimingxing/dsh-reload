@@ -84,6 +84,7 @@ window.__ModuleLoader__.load({
       'modal.ok': '知道了',
       'modal.confirmTitle': '重启客户端？',
       'modal.confirmDesc': 'DSH 会关闭并自动重新打开。当前没有任务在运行。重启期间窗口会短暂消失。',
+      'modal.confirmTerminalsDesc': 'DSH 会关闭并自动重新打开。下面这些终端会一起关掉——如果里面还有进程在跑，它们会被中断。会话和后台任务才是阻止重启的原因，终端不会。',
       'modal.confirmCancel': '取消',
       'modal.confirmOk': '重启客户端',
       'modal.restarting': '正在重启 DSH…',
@@ -125,6 +126,7 @@ window.__ModuleLoader__.load({
       'modal.ok': 'Got it',
       'modal.confirmTitle': 'Restart the app?',
       'modal.confirmDesc': 'DSH will close and reopen automatically. No tasks are running. The window disappears briefly.',
+      'modal.confirmTerminalsDesc': 'DSH will close and reopen automatically. These terminals close with it - anything still running inside them is cut off. Terminals alone never block a restart; sessions and background jobs do.',
       'modal.confirmCancel': 'Cancel',
       'modal.confirmOk': 'Restart app',
       'modal.restarting': 'Restarting DSH…',
@@ -568,8 +570,15 @@ window.__ModuleLoader__.load({
     /**
      * 点「重启客户端」的第一步：查状态，决定弹提示框还是确认框。
      *
-     * 有任务 → 只读提示框（**没有重启选项**），安全优先；
-     * 无任务 → 确认框，用户确认后才真正执行。
+     * 三种情况，分流依据是**重启会不会毁掉用户看不见的工作**：
+     *
+     *  - 会话或后台任务在跑 → 只读提示框（**没有重启选项**）。它们跑在
+     *    Host 里，重启必然中断，用户还没法从界面上看出「断在半路」的状态。
+     *  - 只有终端开着 → 确认框，**并把终端列出来**。终端不参与 `active`
+     *    判定（见 lib/activity.js）：无头终端、已卡死的终端都很常见，把它
+     *    当成硬拦截会让用户卡在「关不掉也重启不了」的死角，只能强杀进程
+     *    —— 那比重启更糟。所以改成「说清楚会关掉哪些，你确认就放行」。
+     *  - 什么都没有 → 普通确认框。
      */
     async function beginRestart(openModal) {
       if (state.reloading || state.restarting) return
@@ -585,6 +594,12 @@ window.__ModuleLoader__.load({
         }
         if (status.activity?.active === true) {
           openModal({ kind: 'busy', activity: status.activity })
+          return
+        }
+        // 终端只提醒、不拦截：把它们交给确认框展示。
+        const terminals = status.activity?.terminals ?? []
+        if (terminals.length > 0) {
+          openModal({ kind: 'confirm', activity: status.activity })
           return
         }
         openModal({ kind: 'confirm' })
@@ -652,7 +667,16 @@ window.__ModuleLoader__.load({
       }, [onClose])
 
       const title = spec.kind === 'busy' ? t('modal.busyTitle') : isConfirm ? t('modal.confirmTitle') : spec.title
-      const desc = spec.kind === 'busy' ? t('modal.busyDesc') : isConfirm ? t('modal.confirmDesc') : spec.desc
+      // 确认框带 activity 时，说明「只有终端在开着」：换个说法，别再说
+      // 「当前没有任务在运行」——那句话在终端可见的情况下是自相矛盾的。
+      const hasTerminals = isConfirm && (spec.activity?.terminals?.length ?? 0) > 0
+      const desc = spec.kind === 'busy'
+        ? t('modal.busyDesc')
+        : hasTerminals
+          ? t('modal.confirmTerminalsDesc')
+          : isConfirm
+            ? t('modal.confirmDesc')
+            : spec.desc
 
       const children = [
         h('div', { className: 'dshr-modal-head', key: 'head' }, title),
@@ -660,7 +684,10 @@ window.__ModuleLoader__.load({
           'div',
           { className: 'dshr-modal-body', key: 'body' },
           h('div', { className: 'dshr-modal-desc' }, desc),
-          spec.kind === 'busy' ? h(TaskList, { activity: spec.activity, t }) : null,
+          // 提示框列出「谁在拦」，终端确认框列出「哪些会被一起关掉」。
+          spec.kind === 'busy' || hasTerminals
+            ? h(TaskList, { activity: spec.activity, t })
+            : null,
         ),
         h(
           'div',
