@@ -186,9 +186,12 @@ window.__ModuleLoader__.load({
 .dshr-float-btn:hover:not(:disabled){background:var(--dsw-alias-bg-layer-2);
   color:var(--dsw-alias-label-primary);box-shadow:0 4px 16px rgba(0,0,0,.28)}
 .dshr-float-btn:disabled{opacity:.5;cursor:default}
-/* hover 时图标旋转一圈半，明确表达「刷新」语义。 */
-.dshr-float-btn:hover:not(:disabled) .dshr-float-icon{animation:dshr-float-spin .6s ease-in-out}
-@keyframes dshr-float-spin{from{transform:rotate(0)}to{transform:rotate(270deg)}}
+/* hover 时图标转满一圈。
+   ⚠️ 必须是 **360°**，不能是 270° 之类的非整圈角度：动画结束后样式会撤销、
+   图标回到 transform:none，若终点不是整圈就会「啪」地弹回原位，很突兀。
+   转满 360° 时终点与起点视觉完全一致，撤销样式时看不出跳变。 */
+.dshr-float-btn:hover:not(:disabled) .dshr-float-icon{animation:dshr-float-spin .55s ease-in-out}
+@keyframes dshr-float-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){
   .dshr-float-btn:hover:not(:disabled) .dshr-float-icon{animation:none}
 }
