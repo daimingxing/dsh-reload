@@ -27,10 +27,21 @@ console.log('  client.js 的模块 id:', idMatch?.[1] ?? '(未找到)')
 console.log('  id 与包名一致  :', idMatch?.[1] === pkg.name ? '是' : '否 ← 需要修正')
 
 // 槽位 id 是否与注册时一致。
-for (const slot of ['sidebar.footer.action', 'settings.general.item']) {
+for (const slot of ['sidebar.footer.action', 'plugins.bundle.config', 'settings.action']) {
   const used = clientSource.includes(`name: '${slot}'`)
   console.log(`  注册槽位 ${slot}: ${used ? '已引用' : '未引用'}`)
 }
+
+// 已废弃的槽位不得再出现（入口已从「通用设置」撤掉）。
+for (const slot of ['settings.general.item']) {
+  const used = clientSource.includes(`name: '${slot}'`)
+  console.log(`  废弃槽位 ${slot}: ${used ? '⚠️ 仍在注册' : '已清除'}`)
+}
+
+// keyed 槽位（plugins.bundle.config）的 key 必须精确等于包名，否则卡片静默不出现。
+const keyMatch = clientSource.match(/const PKG_NAME = '([^']+)'/)
+console.log('  PKG_NAME       :', keyMatch?.[1] ?? '(未找到)')
+console.log('  与包名一致      :', keyMatch?.[1] === pkg.name ? '是' : '否 ← 需要修正')
 
 // 检查 client.js 里是否误用了 Node 专有的 API（浏览器会直接抛错，导致整个模块加载失败）。
 const nodeOnly = ['require("node:', "require('node:", 'process.env.', 'readFileSync', 'writeFileSync']

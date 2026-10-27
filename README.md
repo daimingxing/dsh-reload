@@ -20,7 +20,7 @@ dsh plugin --profile desktop add link:E:\Project\dsh-reload
 
 桌面客户端也可以让 Agent 用 `plugin_manager` 的 `install_bundle`，target 传包目录的绝对路径。
 
-装好后刷新一次页面，侧边栏底部和「设置 → 通用」最后一行就会出现入口。
+装好后刷新一次页面，侧边栏底部会出现「热重载」按钮；所有入口和开关见下表。
 
 ## 两个动作
 
@@ -33,9 +33,12 @@ dsh plugin --profile desktop add link:E:\Project\dsh-reload
 
 | 入口 | 动作 |
 |---|---|
-| 侧边栏按钮（Settings 旁） | 点击 = 热重载（可在设置里隐藏） |
-| 设置 → 通用 → 最后一行 | 两个按钮：热重载 / 重启客户端 |
+| 侧边栏底部（Settings 上方） | 点击 = 热重载（可在插件页里隐藏；Windows 折叠侧边栏时不可见） |
+| 设置面板顶栏右侧（Close 左边） | 两个按钮：热重载 / 重启客户端（任何设置页都有） |
+| 设置 → 插件 → 热重载（dsh-reload） | 插件自己的页：两个按钮 + 侧边栏开关 |
 | 智能体工具 `dsh_hot_reload` | 热重载（**智能体无法触发重启**） |
+
+> 「设置 → 通用」里**没有**本插件的任何内容——通用页只放全局偏好。
 
 ## 安全策略
 
@@ -68,9 +71,13 @@ npm 上已有一个 [dsh-hot-reload](https://www.npmjs.com/package/dsh-hot-reloa
 - **热重载会清空被重载插件的内存状态**（包括本插件自己）。
 - **替换版本加载失败时，旧代码不再运行**，插件变为 `failed`，直到文件修好后再热重载一次。
 - **只改 `package.json` 不会被检测**（DSH 的官方限制）—— 需要重启客户端。
-- **重启客户端会中断所有任务**，且没有失败兜底：新实例若未能启动，需要手动双击图标。
+- **重启客户端会中断所有任务**。新实例拉起后会做存活探测并重试最多 3 次；
+  仍失败时日志记在 `$DSH_HOME/dsh-reload/restart.log`，需手动双击图标。
 - 重启仅支持 **Windows 桌面客户端**；`dsh web` 场景下按钮会禁用并说明原因。
-- 刚装好或刚更新插件后，**需要刷新一次页面**才能看到菜单入口（客户端模块图在页面加载时构建）。
+- **Windows 上侧边栏折叠后，侧边栏那个热重载按钮会整块隐藏**（宿主行为：
+  `[data-windows-titlebar] .collapsed .footArea { display: none }`）。
+  此时请用设置面板顶栏右侧的按钮，或插件详情页里的按钮。
+- 刚装好或刚更新插件后，**需要刷新一次页面**才能看到入口（客户端模块图在页面加载时构建）。
 
 ## 开发
 
@@ -80,11 +87,17 @@ npm 上已有一个 [dsh-hot-reload](https://www.npmjs.com/package/dsh-hot-reloa
 # 工具 schema 与实现的字段一致性（用 Host 自己的断言函数）
 ELECTRON_RUN_AS_NODE=1 "<DeepSeek Harness.exe>" --expose-internals scripts/check-schema.mjs
 
-# 槽位组件不得依赖未声明的 props
+# 槽位注册写法（含 keyed 槽位的 key 必须等于包名）
 node scripts/check-slot-components.mjs
+
+# 组件能否真实渲染（抓渲染期异常）
+node scripts/render-probe.mjs
 
 # 声明与路径检查
 node scripts/inspect-graph.mjs
+
+# 重启链路（存活探测 / 环境剥离 / 重试；用假主进程，不影响正在运行的 DSH）
+node scripts/restarter-drill.mjs
 ```
 
 ## 文档

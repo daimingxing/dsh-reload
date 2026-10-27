@@ -181,6 +181,25 @@ function renderTree(node, depth = 0) {
   return count
 }
 
+/**
+ * 按槽位真实 owner props 构造渲染入参。
+ *
+ * 宿主各槽位传的东西不同，这里逐个照抄（不是「猜」）：
+ *  - `sidebar.footer.action` → `{ wide }`
+ *  - `plugins.bundle.config`  → `{ view, form? }`，插件页按 `view: 'page'` 渲染
+ *  - `settings.action`        → 空接口（`children?: never`），只带 `t`
+ *
+ * `locale: NS` 声明会让框架再注入 `t`，所以每个场景都带 `t`。
+ * @param slot - 槽位名。
+ * @param t - 翻译函数。
+ * @returns 渲染 props。
+ */
+function propsForSlot(slot, t) {
+  if (slot === 'sidebar.footer.action') return { wide: true, t }
+  if (slot === 'plugins.bundle.config') return { view: 'page', t }
+  return { t }
+}
+
 let failures = 0
 for (const capture of captures) {
   // 模拟 slots.inject 的回调：框架会在 owner 就绪时调用它。
@@ -202,15 +221,16 @@ for (const capture of captures) {
     failures++
     continue
   }
-  console.log(`  ${capture.key} -> id=${entry.options.id} order=${entry.options.order}`)
+  const identity =
+    entry.options.key !== undefined
+      ? `key=${entry.options.key}`
+      : `id=${entry.options.id} order=${entry.options.order}`
+  console.log(`  ${capture.key} -> ${identity}`)
   try {
-    // 槽位的 `locale: NS` 声明会让框架把翻译函数 `t` 注入 props；
-    // sidebar.footer.action 额外收到 { wide }。
     const t = (key) => key
-    const props = capture.key === 'sidebar.footer.action' ? { wide: true, t } : { t }
-    const output = entry.component(props)
+    const output = entry.component(propsForSlot(capture.key, t))
     if (output === null) {
-      console.log('     渲染 OK：null（侧边栏开关关闭）')
+      console.log('     渲染 OK：null（该槽位本次不渲染内容）')
     } else {
       const rendered = renderTree(output)
       console.log(`     渲染 OK：${rendered} 个节点`)
@@ -223,4 +243,4 @@ for (const capture of captures) {
 }
 
 if (failures > 0) process.exit(1)
-console.log('两个槽位组件均可正常渲染')
+console.log(`${captures.length} 个槽位组件均可正常渲染`)

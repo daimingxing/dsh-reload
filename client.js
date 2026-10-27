@@ -1,10 +1,17 @@
 /**
  * dsh-reload — 浏览器半边。
  *
- * 两块 UI，都经 slots 注册到宿主声明过的槽位：
- *  1. `sidebar.footer.action`（order 10）：热重载图标按钮，点击即执行。
- *  2. `settings.general.item`（order 110）：「通用」页最后一行，
- *     含侧边栏按钮开关 + 「热重载」「重启客户端」两个按钮。
+ * 三块 UI，都经 slots 注册到宿主声明过的槽位：
+ *  1. `sidebar.footer.action`（order 10）：侧边栏底部的「热重载」按钮，
+ *     展开时带文字标签，折叠时只留图标。可在插件页里隐藏。
+ *  2. `plugins.bundle.config`（keyed，key = 包名 `dsh-reload`）：本插件在
+ *     「设置 → 插件」里自己那一页的卡片，含「热重载」「重启客户端」两个按钮
+ *     和「在侧边栏显示热重载按钮」开关。
+ *  3. `settings.action`：设置面板顶栏右侧（Close 左边）的两个按钮，
+ *     在任何设置页都可见。
+ *
+ * 「设置 → 通用」里**没有**本插件的任何内容：通用页放全局偏好（语言、主题、
+ * 输入框回车行为），热重载 / 重启是插件自己的动作，不该占据那一列。
  *
  * 与宿主的约定：
  *  - 不 require 宿主 primitives 包（practices.md 的 UI 规则）：控件自绘，
@@ -26,6 +33,12 @@ window.__ModuleLoader__.load({
 
     const NS = 'dsh-reload'
 
+    /**
+     * 包名。`plugins.bundle.config` 的 key 必须与插件管理页 inventory 里的包名
+     * 精确相等，否则卡片静默不出现。
+     */
+    const PKG_NAME = 'dsh-reload'
+
     /** 侧边栏按钮显示开关的本地偏好键。 */
     const PREF_KEY = 'dsh-reload:sidebar-button'
 
@@ -43,7 +56,7 @@ window.__ModuleLoader__.load({
       'section.title': '热重载',
       'section.desc': '重新加载文件有改动的插件，不中断会话。',
       'section.sidebarToggle': '在侧边栏显示热重载按钮',
-      'section.sidebarToggleDesc': '关闭后只隐藏侧边栏底部那个图标，本页的两个按钮不受影响。',
+      'section.sidebarToggleDesc': '关闭后只隐藏侧边栏底部那个按钮，本页和设置顶栏的按钮不受影响。',
       'toast.unchanged': '没有检测到改动（可能还没重新构建）',
       'toast.reloaded': '已热重载 {n} 个插件',
       'toast.reloadFailed': '热重载失败：{message}',
@@ -79,7 +92,8 @@ window.__ModuleLoader__.load({
       'section.title': 'Hot reload',
       'section.desc': 'Reload plugins whose files changed without interrupting sessions.',
       'section.sidebarToggle': 'Show the hot reload button in the sidebar',
-      'section.sidebarToggleDesc': 'Turning this off only hides the sidebar icon; both buttons on this page keep working.',
+      'section.sidebarToggleDesc':
+        'Turning this off only hides the sidebar button; the buttons on this page and in the settings header keep working.',
       'toast.unchanged': 'No changes detected (the build may not have run yet)',
       'toast.reloaded': 'Hot reloaded {n} plugin(s)',
       'toast.reloadFailed': 'Hot reload failed: {message}',
@@ -121,6 +135,31 @@ window.__ModuleLoader__.load({
 .dshr-icon-btn:hover:not(:disabled){background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dshr-icon-btn:disabled{opacity:.5;cursor:default}
 .dshr-icon-btn-wide{width:auto;gap:8px;padding:0 8px;height:28px;font-size:13px}
+/* 侧边栏展开时的「图标 + 文字」按钮。尺寸照抄宿主 Settings 触发器
+   （ui-settings-general 的 .trigger：42px 高、14px 字号、radius-md、
+   padding 0 10px 0 8px、hover 用 interactive-bg-hover），
+   这样两行看起来是同一个控件家族，而不是「一个图标 + 一个按钮」。 */
+.dshr-footer-btn{box-sizing:border-box;display:flex;align-items:center;gap:8px;
+  width:100%;height:42px;margin:0;padding:0 10px 0 8px;
+  border:none;border-radius:var(--dsw-radius-md);background:transparent;cursor:pointer;
+  color:var(--dsw-alias-label-primary);font-family:inherit;font-size:14px;line-height:22px;
+  overflow:hidden;text-align:left}
+.dshr-footer-btn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}
+.dshr-footer-btn:disabled{opacity:.55;cursor:default}
+.dshr-footer-btn-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+/* 设置面板顶栏的紧凑按钮。顶栏高 54px、padding 20px 14px 8px 10px，
+   右侧 .actions 是 flex-end + gap 8px，Close 是 28×28。
+   这里用 28px 高、12px 字号，保证不撑高顶栏，也不跟 Close 抢注意力。 */
+.dshr-hdr-btn{box-sizing:border-box;display:inline-flex;align-items:center;gap:5px;
+  height:28px;padding:0 10px;margin:0;flex:none;
+  border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-sm);
+  background:transparent;cursor:pointer;white-space:nowrap;
+  color:var(--dsw-alias-label-primary);font-family:inherit;font-size:12px;line-height:18px}
+.dshr-hdr-btn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}
+.dshr-hdr-btn:disabled{opacity:.5;cursor:default}
+.dshr-hdr-btn-danger{border-color:var(--dsw-alias-state-error-primary);
+  color:var(--dsw-alias-state-error-primary)}
+.dshr-hdr-btn-label{white-space:nowrap}
 .dshr-spin{animation:dshr-rotate 1s linear infinite}
 @keyframes dshr-rotate{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){.dshr-spin{animation:none}}
@@ -160,12 +199,36 @@ window.__ModuleLoader__.load({
 .dshr-task-more{margin-top:4px;font-size:12px;color:var(--dsw-alias-label-secondary)}
 .dshr-modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;
   border-top:1px solid var(--dsw-alias-border-l1)}
-.dshr-lock{position:fixed;inset:0;z-index:12001;background:var(--dsw-alias-bg-base,rgba(0,0,0,.72));
+/* 重启遮罩。
+   ⚠️ 背景色必须用 --dsw-alias-bg-mask-*（真正的半透明遮罩色：深色 #00000080、
+   浅色 #0000003d），不能用 --dsw-alias-bg-base——后者是「不透明的页面底色」，
+   跟页面背景同色，盖上去等于没盖，用户看到的就是「没有出现蒙版」。
+   这里再叠一层 backdrop-filter 让底下的界面明显失焦。 */
+.dshr-lock{position:fixed;inset:0;z-index:12001;
+  background:var(--dsw-alias-bg-mask-1,rgba(0,0,0,.5));
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
   color:var(--dsw-alias-label-primary);cursor:wait}
+/* 遮罩中央的提示卡片：深色遮罩上直接放浅色文字在浅色主题下会糊，
+   所以文字放进一个有底色与边框的卡片里。 */
+.dshr-lock-card{display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:20px 28px;border-radius:12px;max-width:min(420px,86vw);text-align:center;
+  background:var(--dsw-alias-bg-overlay);border:1px solid var(--dsw-alias-border-l1);
+  box-shadow:0 12px 40px rgba(0,0,0,.28)}
 .dshr-lock-title{font-size:15px;font-weight:600}
 .dshr-lock-hint{font-size:12px;color:var(--dsw-alias-label-secondary)}
-.dshr-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:12002;
+/* 遮罩里的转圈指示器（与 .dshr-spin 同一套 keyframes）。 */
+.dshr-lock-spinner{width:22px;height:22px;border-radius:50%;flex:none;
+  border:2px solid var(--dsw-alias-border-l2);
+  border-top-color:var(--dsw-alias-brand-primary);
+  animation:dshr-rotate .9s linear infinite}
+/* toast 放在顶部：底部会跟输入框、状态栏挤在一起，而且重启遮罩也在中间，
+   顶部更容易被注意到。
+   --dsh-frame-chrome-top 是宿主自己的窗口标题栏高度变量（设置面板的遮罩
+   也用它：inset: var(--dsh-frame-chrome-top,0px) 0 0），加上它才不会
+   被标题栏压住。 */
+.dshr-toast{position:fixed;left:50%;top:calc(var(--dsh-frame-chrome-top,0px) + 16px);
+  transform:translateX(-50%);z-index:12002;
   display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;font-size:13px;
   background:var(--dsw-alias-bg-overlay);color:var(--dsw-alias-label-primary);
   border:1px solid var(--dsw-alias-border-l1);box-shadow:0 8px 28px rgba(0,0,0,.28);max-width:min(520px,90vw)}
@@ -215,13 +278,13 @@ window.__ModuleLoader__.load({
     /* ---------------------------------------------------------------- */
 
     /** 热重载图标：环形箭头。`spinning` 时旋转。 */
-    function ReloadIcon({ spinning }) {
+    function ReloadIcon({ spinning, size = 15 }) {
       return h(
         'svg',
         {
           viewBox: '0 0 24 24',
-          width: 15,
-          height: 15,
+          width: size,
+          height: size,
           fill: 'none',
           stroke: 'currentColor',
           strokeWidth: 2,
@@ -324,6 +387,14 @@ window.__ModuleLoader__.load({
       el.setAttribute('aria-busy', 'true')
       el.setAttribute('aria-live', 'assertive')
 
+      const card = document.createElement('div')
+      card.className = 'dshr-lock-card'
+
+      // 转圈指示器：光有文字会让人怀疑「是不是卡住了」，动起来才像在做事。
+      const spinnerEl = document.createElement('div')
+      spinnerEl.className = 'dshr-lock-spinner'
+      spinnerEl.setAttribute('aria-hidden', 'true')
+
       const titleEl = document.createElement('div')
       titleEl.className = 'dshr-lock-title'
       titleEl.textContent = title
@@ -331,7 +402,8 @@ window.__ModuleLoader__.load({
       hintEl.className = 'dshr-lock-hint'
       hintEl.textContent = hint
 
-      el.append(titleEl, hintEl)
+      card.append(spinnerEl, titleEl, hintEl)
+      el.appendChild(card)
       root.appendChild(el)
       lockEl = el
 
@@ -364,12 +436,13 @@ window.__ModuleLoader__.load({
     /* ---------------------------------------------------------------- */
 
     /**
-     * 当前生效的翻译函数。
+     * 供**命令式**代码路径使用的翻译函数（toast、遮罩等 React 之外的地方）。
      *
-     * 放在模块级而不是 `apply` 的局部：槽位组件定义在 `apply` 之外，只能从闭包
-     * 读它。**不能**改成从 props 取——槽位只传自身声明的 owner props（
-     * `sidebar.footer.action` 传 `{ wide }`，`settings.general.item` 传空），
-     * 读 `props.t` 会在首次渲染就抛错，整个槽位条目被移除、界面上什么都不出现。
+     * React 组件一律从 props 取 `t`：注册选项里的 `locale: NS` 就是宿主注入
+     * `t` 的开关，宿主自己的组件也是这么写的。这里只是把同一份 `t` 存一份到
+     * 闭包，好让 `showToast()` 这类不经过 React 的调用也能拿到译文。
+     *
+     * （早期误以为槽位组件不能读 `props.t`，那是个误判，记录见 03-实现笔记 §3.2。）
      */
     let currentT = (key) => key
 
@@ -390,7 +463,7 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /** 全局 UI 状态（两个槽位共享，避免各存一份导致不同步）。 */
+    /** 全局 UI 状态（三个槽位共享，避免各存一份导致不同步）。 */
     const state = {
       reloading: false,
       restarting: false,
@@ -646,17 +719,17 @@ window.__ModuleLoader__.load({
 
     /**
      * `sidebar.footer.action` 的按钮。点击即热重载，不弹任何框。
-     * 窄栏（`wide === false`，56px）只显示图标。
-     */
-    /**
-     * `sidebar.footer.action` 的按钮。点击即热重载，不弹任何框。
-     * 窄栏（`wide === false`，56px）只显示图标。
      *
-     * 翻译函数来自 apply 里绑定的闭包 `t`，不从 props 取：槽位只传自身声明的
-     * owner props（这里是 `{ wide }`），不会传 `t`——从 props 读会让组件在渲染
-     * 瞬间抛错，整个槽位条目被移除。
+     * **展开时带文字标签**：宿主自己的 Settings 按钮在 `wide` 下是
+     * 「图标 + 文字」（`IconSettingsOutlineMedium` + `triggerLabel`，高度 42px、
+     * 字号 14px、`padding: 0 10px 0 8px`）。只放一个光秃秃的图标会跟旁边
+     * 那行不搭，所以这里照抄同一套尺寸与间距。
+     *
+     * 窄栏（`wide === false`，36/56px 竖排）只留图标——那时没有横向空间放字。
+     *
+     * `t` 来自注册选项的 `locale: NS`（宿主用同一契约注入）。
      */
-    function SidebarButton({ t }) {
+    function SidebarButton({ wide, t }) {
       useSharedState()
 
       if (!state.sidebarVisible) return null
@@ -668,58 +741,55 @@ window.__ModuleLoader__.load({
         'button',
         {
           type: 'button',
-          className: 'dshr-icon-btn',
+          // 展开时用宿主 Settings 触发器的同款外观（42px 高、图标+文字），
+          // 折叠时退回紧凑图标按钮。
+          className: wide ? 'dshr-footer-btn' : 'dshr-icon-btn',
           title: label,
           'aria-label': label,
           disabled: busy,
           onClick: () => void doHotReload(),
         },
-        h(ReloadIcon, { spinning: state.reloading }),
+        h(ReloadIcon, { spinning: state.reloading, size: wide ? 16 : 15 }),
+        wide ? h('span', { className: 'dshr-footer-btn-label' }, label) : null,
       )
     }
 
     /* ---------------------------------------------------------------- */
-    /*  设置行                                                            */
+    /*  插件详情页卡片                                                     */
     /* ---------------------------------------------------------------- */
 
     /**
-     * 「通用」设置页的最后一行：标题 + 侧边栏开关 + 两个动作按钮。
+     * 本插件在「设置 → 插件」里自己那一页的卡片。
      *
-     * 同样从闭包取 `t`：`settings.general.item` 的 owner props 是空接口
-     * （`children?: never`），不传任何东西，读 props.t 会立即崩掉该行。
+     * 挂在 `plugins.bundle.config`（keyed，key = 包名）上：插件管理页按
+     * `ledger.bundles.has(pkg.name)` 决定要不要渲染这一段，而 `ledger.bundles`
+     * 正是这个槽位上注册过的 key 集合——所以 key 必须**恰好等于包名**
+     * `dsh-reload`，写成 Loader entry id（`reload` / `include:reload`）都不会出现。
+     *
+     * owner props 是 `{ view, form }`，`view: 'summary'` 时宿主只取一行摘要，
+     * 本卡片没有摘要语义，直接返回 null。
+     *
+     * `t` 来自注册选项的 `locale: NS`（与宿主自己的组件同一契约），不从 props 之外猜。
+     *
+     * 为什么入口从「通用设置」搬到这里：通用页是全局偏好，而这两个动作属于
+     * 本插件自己；插件页是用户看这个插件的地方，开关和按钮放在这里才符合语境。
      */
-    function SectionRow({ t }) {
+    function PluginPageCard({ t, view }) {
       useSharedState()
       const [modal, setModal] = React.useState(null)
+
+      // 摘要视图不渲染任何内容（宿主可能用 `view: 'summary'` 取一行）。
+      if (view === 'summary') return null
+
       const busy = state.reloading || state.restarting
 
-      // 启动后问一次「上次是不是刚重启过」：读到标记就提示一次并清掉。
-      React.useEffect(() => {
-        let cancelled = false
-        void (async () => {
-          try {
-            const data = await api('pending-restart', 'POST')
-            if (!cancelled && data?.pending) showToast(t('toast.restarted'))
-          } catch {
-            // 读不到标记不影响任何功能。
-          }
-        })()
-        return () => {
-          cancelled = true
-        }
-        // 依赖为空：`t` 由槽位的 `locale: NS` 声明注入，locale 变化时框架会重挂组件。
-      }, [])
-
-      const closeModal = React.useCallback(() => setModal(null), [])
-      const confirmRestart = React.useCallback(() => {
+      const closeModal = () => setModal(null)
+      const confirmRestart = () => {
         setModal(null)
         void performRestart()
-      }, [])
+      }
 
-      // 重启进行中：用 React 再画一层「正在重启」提示（遮罩由 lockUI 负责）。
-      // 这里只做按钮态，避免两套 UI 打架。
-
-      const toggleSidebar = React.useCallback(() => {
+      const toggleSidebar = () => {
         state.sidebarVisible = !state.sidebarVisible
         try {
           window.localStorage.setItem(PREF_KEY, state.sidebarVisible ? '1' : '0')
@@ -727,7 +797,7 @@ window.__ModuleLoader__.load({
           // 无痕模式等场景不持久化，仅本页生效。
         }
         wakeAll()
-      }, [])
+      }
 
       const pendingHint =
         Array.isArray(state.pending) && state.pending.length > 0
@@ -797,6 +867,68 @@ window.__ModuleLoader__.load({
     }
 
     /* ---------------------------------------------------------------- */
+    /*  设置面板顶栏右侧的两个按钮                                          */
+    /* ---------------------------------------------------------------- */
+
+    /**
+     * `settings.action`：设置面板顶栏右侧（Close 左边）的「热重载」「重启客户端」。
+     *
+     * 位置约束来自宿主（`ui-settings-general` 的 `SettingsPanel`）：
+     *   `.content > .header` 高 54px、`padding: 20px 14px 8px 10px`
+     *   `.actions` 是 `justify-content:flex-end; align-items:center; gap:8px`
+     *   Close 按钮 28×28
+     *
+     * 所以这里用**紧凑按钮**（28px 高、12px 字号），保证不撑高顶栏、也不跟
+     * Close 抢视线。「重启客户端」保留危险色以示区别。
+     *
+     * 该槽位是 root scope，任何设置页都会渲染；这符合「随时能热重载」的预期。
+     */
+    function SettingsHeaderActions({ t }) {
+      useSharedState()
+      const [modal, setModal] = React.useState(null)
+      const busy = state.reloading || state.restarting
+
+      const closeModal = () => setModal(null)
+      const confirmRestart = () => {
+        setModal(null)
+        void performRestart()
+      }
+
+      return h(
+        React.Fragment,
+        null,
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'dshr-hdr-btn',
+            title: t('action.reload'),
+            'aria-label': t('action.reload'),
+            disabled: busy,
+            onClick: () => void doHotReload(),
+          },
+          h(ReloadIcon, { spinning: state.reloading, size: 13 }),
+          h('span', { className: 'dshr-hdr-btn-label' }, state.reloading ? t('action.reloading') : t('action.reload')),
+        ),
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'dshr-hdr-btn dshr-hdr-btn-danger',
+            title: t('action.restart'),
+            'aria-label': t('action.restart'),
+            disabled: busy,
+            onClick: () => void beginRestart(setModal),
+          },
+          t('action.restart'),
+        ),
+        modal !== null
+          ? h(Modal, { spec: modal, t, onClose: closeModal, onRestart: confirmRestart })
+          : null,
+      )
+    }
+
+    /* ---------------------------------------------------------------- */
     /*  入口                                                              */
     /* ---------------------------------------------------------------- */
 
@@ -807,7 +939,7 @@ window.__ModuleLoader__.load({
       const t = ctx.locale.bind(NS)
       currentT = t
 
-      // 读取侧边栏按钮的本地偏好。
+      // 读取侧边栏按钮的本地偏好（默认显示）。
       try {
         state.sidebarVisible = window.localStorage.getItem(PREF_KEY) !== '0'
       } catch {
@@ -840,6 +972,19 @@ window.__ModuleLoader__.load({
         'dsh-reload: overlays',
       )
 
+      // 启动后问一次「上次是不是刚重启过」：读到标记就提示一次并清掉。
+      //
+      // 放在 apply 而不是卡片组件里：卡片只在用户打开插件详情页时才挂载，
+      // 而这条提示应该在应用启动后就出现，且只出现一次。
+      void (async () => {
+        try {
+          const data = await api('pending-restart', 'POST')
+          if (data?.pending) showToast(currentT('toast.restarted'))
+        } catch {
+          // 读不到标记不影响任何功能。
+        }
+      })()
+
       ctx.slots.inject('sidebar.footer.action', () =>
         ctx.slots.register(
           { name: 'sidebar.footer.action', id: 'dsh-reload:button', order: 10, locale: NS },
@@ -847,10 +992,28 @@ window.__ModuleLoader__.load({
         ),
       )
 
-      ctx.slots.inject('settings.general.item', () =>
+      // 卡片挂在插件管理页自己的 bundle 配置位上，key 必须是**包名**：
+      // 插件页用 `ledger.bundles.has(pkg.name)` 决定是否渲染，而那个 Set 就是
+      // 本槽位上注册过的 key。写成 Loader entry id 会静默不显示。
+      ctx.slots.inject('plugins.bundle.config', () =>
         ctx.slots.register(
-          { name: 'settings.general.item', id: 'dsh-reload:section', order: 110, locale: NS },
-          SectionRow,
+          { name: 'plugins.bundle.config', key: PKG_NAME, locale: NS },
+          PluginPageCard,
+        ),
+      )
+
+      // 设置面板顶栏右侧（Close 左边）的两个按钮。
+      //
+      // 宿主把 `settings.action` 渲染在 `.content > .header > .actions` 里
+      // （`justify-content:flex-end`，高 54px，gap 8px，Close 28×28），所以这里
+      // 必须给**紧凑尺寸**：按钮比正文里的小一号，不能撑高顶栏。
+      //
+      // 这个槽位是 root scope、在任何设置页都渲染（不只是「账户与余额」），
+      // 这是官方扩展点里最接近「设置面板底部/角落」的位置，且不依赖宿主 CSS 结构。
+      ctx.slots.inject('settings.action', () =>
+        ctx.slots.register(
+          { name: 'settings.action', id: 'dsh-reload:header-actions', order: 10, locale: NS },
+          SettingsHeaderActions,
         ),
       )
     }

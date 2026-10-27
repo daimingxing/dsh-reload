@@ -158,7 +158,7 @@ function registerTool(ctx) {
           '- pending / restartReason：若不为空，说明有模块必须重启客户端才能生效，请如实告诉用户需要手动重启 DSH。',
           '- warnings / notes：诊断信息。',
           '',
-          '注意：这不能重启客户端。用户需要重启时，请引导他去 设置 → 通用 → 热重载 里操作。',
+          '注意：这不能重启客户端。用户需要重启时，请引导他去 设置 → 插件 → 热重载（dsh-reload）的详情页，或设置面板右上角的「重启客户端」按钮。',
         ].join('\n'),
         // `tools.register()` 直接接收 JSON Schema（不是 defineTool 的简写规格），
         // 无参工具也必须显式声明 `type: 'object'` + `properties: {}`；
