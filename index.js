@@ -148,17 +148,9 @@ function registerTool(ctx) {
       tools.register({
         name: 'dsh_hot_reload',
         description: [
-          '热重载 DSH 插件：让磁盘上文件已改动的插件重新加载，不重启客户端、不中断会话。',
-          '用于插件开发：改完代码并重新构建后，调用它让改动生效。',
+          'Reload DSH plugins whose files changed on disk, without restarting the client or interrupting sessions. Call after editing and rebuilding plugin code, or when the user asks.',
           '',
-          '返回字段含义：',
-          '- applied：本次操作是否成功完成。',
-          '- changed：是否真的有插件被替换。false 表示磁盘上没有插件变化（还没重新构建、改动不涉及产出的 JS、或刚刚已经重载过），这不是错误。',
-          '- replacedPlugins：被替换的插件包名。',
-          '- pending / restartReason：若不为空，说明有模块必须重启客户端才能生效，请如实告诉用户需要手动重启 DSH。',
-          '- warnings / notes：诊断信息。',
-          '',
-          '注意：这不能重启客户端。用户需要重启时，请引导他去 设置 → 插件 → 热重载（dsh-reload）的详情页，或设置面板右上角的「重启客户端」按钮。',
+          'changed=false is not an error: nothing changed on disk (not rebuilt, edit affects no emitted JS, or already reloaded). Non-empty pending/restartReason needs a client restart.',
         ].join('\n'),
         // `tools.register()` 直接接收 JSON Schema（不是 defineTool 的简写规格），
         // 无参工具也必须显式声明 `type: 'object'` + `properties: {}`；
