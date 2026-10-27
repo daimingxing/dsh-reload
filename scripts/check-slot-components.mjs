@@ -45,11 +45,6 @@ const EXPECTATIONS = [
     component: 'SettingsHeaderActions',
   },
   {
-    slot: 'conversation.header.leading',
-    // single 槽位：没有 id / order，注册选项只有 name + locale。
-    component: 'HeaderButton',
-  },
-  {
     slot: 'shell.overlay',
     id: 'dsh-reload:floating',
     order: 900,
@@ -69,12 +64,15 @@ const EXPECTATIONS = [
  * `settings.general.item`：本插件曾在「设置 → 通用」底部放一行按钮 + 开关，
  * 现已全部撤掉——通用页只放全局偏好，热重载 / 重启的入口在插件详情页和
  * 设置面板顶栏。
+ *
+ * `conversation.header.leading`：曾在主区域顶栏最左侧放热重载按钮，
+ * 用户认为不该占那个位置（会跟会话标题抢视线），已整体撤掉。
  */
-const RETIRED_SLOTS = ['settings.general.item']
+const RETIRED_SLOTS = ['settings.general.item', 'conversation.header.leading']
 
 for (const retired of RETIRED_SLOTS) {
   if (source.includes(`name: '${retired}'`)) {
-    problems.push(`槽位 ${retired} 已废弃（入口迁到插件详情页），不应再注册`)
+    problems.push(`槽位 ${retired} 已废弃，不应再注册`)
   }
 }
 

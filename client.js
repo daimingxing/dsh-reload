@@ -42,9 +42,6 @@ window.__ModuleLoader__.load({
     /** 侧边栏按钮显示开关的本地偏好键。 */
     const PREF_KEY = 'dsh-reload:sidebar-button'
 
-    /** 主区域顶栏按钮显示开关的本地偏好键。 */
-    const PREF_HEADER_KEY = 'dsh-reload:header-button'
-
     /** 右下角悬浮按钮显示开关的本地偏好键。 */
     const PREF_FLOATING_KEY = 'dsh-reload:floating-button'
 
@@ -57,14 +54,15 @@ window.__ModuleLoader__.load({
     const zh = {
       'action.reload': '热重载',
       'action.reloading': '重载中…',
+      // 「更多」菜单里用用户视角的说法（见 MoreMenuItem 的注释）。
+      'action.refresh': '刷新插件',
+      'action.refreshing': '刷新中…',
       'action.restart': '重启客户端',
       'action.restarting': '正在重启…',
       'section.title': '热重载',
       'section.desc': '重新加载文件有改动的插件，不中断会话。',
       'section.sidebarToggle': '在侧边栏显示热重载按钮',
       'section.sidebarToggleDesc': '关闭后只隐藏侧边栏底部那个按钮，本页和设置顶栏的按钮不受影响。',
-      'section.headerToggle': '在主区域顶栏显示热重载按钮',
-      'section.headerToggleDesc': '顶栏最左侧（会话标题左边）。侧边栏折叠时它仍然在。',
       'section.floatingToggle': '在右下角显示悬浮按钮',
       'section.floatingToggleDesc': '固定浮在窗口右下角，任何界面都能点到。',
       'toast.unchanged': '没有检测到改动（可能还没重新构建）',
@@ -97,6 +95,8 @@ window.__ModuleLoader__.load({
     const en = {
       'action.reload': 'Hot reload',
       'action.reloading': 'Reloading…',
+      'action.refresh': 'Refresh plugins',
+      'action.refreshing': 'Refreshing…',
       'action.restart': 'Restart app',
       'action.restarting': 'Restarting…',
       'section.title': 'Hot reload',
@@ -104,14 +104,10 @@ window.__ModuleLoader__.load({
       'section.sidebarToggle': 'Show the hot reload button in the sidebar',
       'section.sidebarToggleDesc':
         'Turning this off only hides the sidebar button; the buttons on this page and in the settings header keep working.',
-      'section.headerToggle': 'Show the hot reload button in the main header',
-      'section.headerToggleDesc':
-        'Far left of the main header, before the session title. It stays visible while the sidebar is collapsed.',
       'section.floatingToggle': 'Show a floating button in the bottom-right corner',
       'section.floatingToggleDesc':
         'Pinned to the window corner, reachable from any screen.',
       'toast.unchanged': 'No changes detected (the build may not have run yet)',
-      'toast.reloaded': 'Hot reloaded {n} plugin(s)',
       'toast.reloadFailed': 'Hot reload failed: {message}',
       'toast.restartFailed': 'Restart failed: {message}',
       'toast.restarted': 'DSH restarted',
@@ -176,30 +172,26 @@ window.__ModuleLoader__.load({
 .dshr-hdr-btn-danger{border-color:var(--dsw-alias-state-error-primary);
   color:var(--dsw-alias-state-error-primary)}
 .dshr-hdr-btn-label{white-space:nowrap}
-/* 主区域顶栏最左侧的按钮。宿主 .header 是 grid(auto minmax(0,1fr))，
-   .headerLeading 是 flex:none + gap 8px，所以这里要紧凑，别把会话标题挤走。
-   外观对齐宿主顶栏里的图标按钮：28px 高、13px 字号、无边框、hover 底色。 */
-.dshr-hdr-leading-btn{box-sizing:border-box;display:inline-flex;align-items:center;gap:6px;
-  height:28px;padding:0 9px;margin:0;flex:none;
-  border:none;border-radius:var(--dsw-radius-md);background:transparent;cursor:pointer;
-  color:var(--dsw-alias-label-secondary);font-family:inherit;font-size:13px;line-height:20px;
-  white-space:nowrap}
-.dshr-hdr-leading-btn:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover);
-  color:var(--dsw-alias-label-primary)}
-.dshr-hdr-leading-btn:disabled{opacity:.5;cursor:default}
-.dshr-hdr-leading-label{white-space:nowrap}
-/* 右下角悬浮按钮。宿主 shell.overlay 层本身 pointer-events:none，
-   占用者要自己 auto 回来（否则点不到）。右下角在多数界面是空的。 */
-.dshr-float-btn{position:fixed;right:24px;bottom:24px;z-index:12000;pointer-events:auto;
-  box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;
-  height:36px;padding:0 14px;margin:0;
-  border:1px solid var(--dsw-alias-border-l2);border-radius:999px;
-  background:var(--dsw-alias-bg-overlay);cursor:pointer;white-space:nowrap;
-  color:var(--dsw-alias-label-primary);font-family:inherit;font-size:13px;line-height:20px;
-  box-shadow:0 4px 16px rgba(0,0,0,.22)}
-.dshr-float-btn:hover:not(:disabled){background:var(--dsw-alias-bg-layer-2)}
+/* 右下角悬浮按钮：**只放图标**，尽量小（32px 圆形）。
+   宿主 shell.overlay 层本身 pointer-events:none，占用者要自己 auto 回来，
+   否则点不到。hover 时图标转起来，作为「可以点」的反馈。 */
+.dshr-float-btn{position:fixed;right:20px;bottom:20px;z-index:12000;pointer-events:auto;
+  box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;padding:0;margin:0;
+  border:1px solid var(--dsw-alias-border-l2);border-radius:50%;
+  background:var(--dsw-alias-bg-overlay);cursor:pointer;
+  color:var(--dsw-alias-label-secondary);
+  box-shadow:0 2px 10px rgba(0,0,0,.2);
+  transition:background .15s,color .15s,box-shadow .15s}
+.dshr-float-btn:hover:not(:disabled){background:var(--dsw-alias-bg-layer-2);
+  color:var(--dsw-alias-label-primary);box-shadow:0 4px 16px rgba(0,0,0,.28)}
 .dshr-float-btn:disabled{opacity:.5;cursor:default}
-.dshr-float-label{white-space:nowrap}
+/* hover 时图标旋转一圈半，明确表达「刷新」语义。 */
+.dshr-float-btn:hover:not(:disabled) .dshr-float-icon{animation:dshr-float-spin .6s ease-in-out}
+@keyframes dshr-float-spin{from{transform:rotate(0)}to{transform:rotate(270deg)}}
+@media (prefers-reduced-motion: reduce){
+  .dshr-float-btn:hover:not(:disabled) .dshr-float-icon{animation:none}
+}
 /* 「更多」菜单里的一行。宿主 MenuItemButton 的高度/字号/hover 照抄：
    32px 高、14px 字号、圆角、hover 用 interactive-bg-hover。
    宽度 100% 撑满菜单（宿主菜单宽 288px）。 */
@@ -516,13 +508,17 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /** 全局 UI 状态（各槽位共享，避免各存一份导致不同步）。 */
+    /**
+     * 全局 UI 状态（各槽位共享，避免各存一份导致不同步）。
+     *
+     * **三个入口默认全部关闭**：本插件追求轻量，不主动往界面上塞东西，
+     * 用户需要时自己在插件详情页里打开。
+     */
     const state = {
       reloading: false,
       restarting: false,
-      sidebarVisible: true,
-      headerVisible: true,
-      floatingVisible: true,
+      sidebarVisible: false,
+      floatingVisible: false,
       pending: null,
     }
 
@@ -810,49 +806,11 @@ window.__ModuleLoader__.load({
     }
 
     /* ---------------------------------------------------------------- */
-    /*  主区域顶栏按钮                                                     */
-    /* ---------------------------------------------------------------- */
-
-    /**
-     * `conversation.header.leading` 的按钮：主区域顶栏最左侧，会话标题左边。
-     *
-     * 为什么这个位置重要：**Windows 上侧边栏一折叠，`sidebar.footer.action`
-     * 整块被宿主 `display:none`**（`[data-windows-titlebar] .collapsed .footArea`），
-     * 而 `shell.leading` 只在 `darwin && sidebarCollapsed` 挂载。这个槽位是
-     * root scope、`replaceRisk: none`、当前无占用，正好补上那个缺口。
-     *
-     * 尺寸约束来自宿主：`.header` 是 grid（`auto minmax(0,1fr)`），
-     * `.headerLeading` 是 `flex:none; gap:8px`，所以按钮要紧凑，别把标题挤走。
-     */
-    function HeaderButton({ t }) {
-      useSharedState()
-
-      if (!state.headerVisible) return null
-
-      const busy = state.reloading || state.restarting
-      const label = state.reloading ? t('action.reloading') : t('action.reload')
-
-      return h(
-        'button',
-        {
-          type: 'button',
-          className: 'dshr-hdr-leading-btn',
-          title: label,
-          'aria-label': label,
-          disabled: busy,
-          onClick: () => void doHotReload(),
-        },
-        h(ReloadIcon, { spinning: state.reloading, size: 15 }),
-        h('span', { className: 'dshr-hdr-leading-label' }, label),
-      )
-    }
-
-    /* ---------------------------------------------------------------- */
     /*  右下角悬浮按钮                                                     */
     /* ---------------------------------------------------------------- */
 
     /**
-     * `shell.overlay` 的悬浮按钮：固定在窗口右下角。
+     * `shell.overlay` 的悬浮按钮：固定在窗口右下角，**只有图标**（32px 圆形）。
      *
      * 宿主对该槽位的说明明确鼓励这类用途：「a badge, a toast stack or a status pill
      * all belong here」；层本身 `pointer-events: none`，占用者自己 `auto` 回来，
@@ -860,6 +818,10 @@ window.__ModuleLoader__.load({
      *
      * 右下角在多数界面都是空的（对话流靠左、输入框居中偏下），且**不受侧边栏
      * 折叠影响**，是「随时都能点到」的兜底入口。
+     *
+     * 不放文字：一行文字会把它变成 100px 宽的胶囊，在右下角过于显眼。
+     * 可读性交给 `title` / `aria-label`（悬停有 tooltip），
+     * 「这是个刷新按钮」由 hover 时的旋转动画表达（见 CSS `.dshr-float-icon`）。
      */
     function FloatingButton({ t }) {
       useSharedState()
@@ -879,8 +841,8 @@ window.__ModuleLoader__.load({
           disabled: busy,
           onClick: () => void doHotReload(),
         },
-        h(ReloadIcon, { spinning: state.reloading, size: 16 }),
-        h('span', { className: 'dshr-float-label' }, label),
+        // `dshr-float-icon` 只用于挂 hover 旋转动画，不参与布局。
+        h('span', { className: 'dshr-float-icon' }, h(ReloadIcon, { spinning: state.reloading, size: 16 })),
       )
     }
 
@@ -889,7 +851,11 @@ window.__ModuleLoader__.load({
     /* ---------------------------------------------------------------- */
 
     /**
-     * `sidebar.panellist.actions`：侧边栏「更多」展开菜单里的一行「热重载」。
+     * `sidebar.panellist.actions`：侧边栏「更多」展开菜单里的一行「刷新插件」。
+     *
+     * 为什么叫「刷新插件」而不是「热重载」：这个菜单里全是**用户视角**的功能
+     * （插件、自动化任务、上下文洞察、浏览更多插件），「热重载」是开发术语，
+     * 放在这里格格不入；「刷新插件」说的是用户看到的效果。
      *
      * 官方规则不允许 require 宿主 primitives 包（`MenuItemButton` 在那里），
      * 所以这里**自绘菜单行**，尺寸与行为照抄宿主 `entry-customization` 的
@@ -901,7 +867,8 @@ window.__ModuleLoader__.load({
     function MoreMenuItem({ t, onDismiss }) {
       useSharedState()
       const busy = state.reloading || state.restarting
-      const label = state.reloading ? t('action.reloading') : t('action.reload')
+      // 这一行用「刷新插件」的说法（`action.refresh`），不用开发术语「热重载」。
+      const label = state.reloading ? t('action.refreshing') : t('action.refresh')
 
       const select = () => {
         // 先关菜单：热重载是异步的，菜单不该一直开着。
@@ -926,17 +893,18 @@ window.__ModuleLoader__.load({
     /**
      * 读取一个布尔型本地偏好。
      *
-     * 只有明确存过 `'0'` 才算关闭——没存过（首次安装）或读不到（无痕模式）
-     * 都按**显示**处理，这样新用户不会莫名其妙看不到按钮。
+     * **默认关闭**：只有明确存过 `'1'` 才算开启；没存过（首次安装）或读不到
+     * （无痕模式）都按**关闭**处理。本插件追求轻量，不主动往界面上塞东西，
+     * 用户需要时自己在插件详情页里打开。
      *
      * @param key - localStorage 键。
      * @returns 是否显示。
      */
     function readPref(key) {
       try {
-        return window.localStorage.getItem(key) !== '0'
+        return window.localStorage.getItem(key) === '1'
       } catch {
-        return true
+        return false
       }
     }
 
@@ -947,8 +915,8 @@ window.__ModuleLoader__.load({
     /**
      * 渲染一行「标题 + 说明 + 右侧开关」。
      *
-     * 抽出来是因为插件页现在有三个同类开关（侧边栏 / 主区域顶栏 / 右下角悬浮），
-     * 复制三遍既啰嗦又容易让某一行漏掉 `aria-checked`。
+     * 抽出来是因为插件页有两个同类开关（侧边栏 / 右下角悬浮），
+     * 复制两遍既啰嗦又容易让某一行漏掉 `aria-checked`。
      *
      * @param t - 翻译函数。
      * @param keyPrefix - 文案键前缀；实际读 `${keyPrefix}` 与 `${keyPrefix}Desc`。
@@ -1028,16 +996,6 @@ window.__ModuleLoader__.load({
         wakeAll()
       }
 
-      const toggleHeader = () => {
-        state.headerVisible = !state.headerVisible
-        try {
-          window.localStorage.setItem(PREF_HEADER_KEY, state.headerVisible ? '1' : '0')
-        } catch {
-          // 同上。
-        }
-        wakeAll()
-      }
-
       const toggleFloating = () => {
         state.floatingVisible = !state.floatingVisible
         try {
@@ -1084,10 +1042,9 @@ window.__ModuleLoader__.load({
             t('action.restart'),
           ),
         ),
-        // 三个「在哪儿显示」开关。每个都带可见文字标签与说明：
-        // 只放 tooltip 的话用户看不出它是做什么的。
+        // 两个「在哪儿显示」开关。每个都带可见文字标签与说明：
+        // 只放 tooltip 的话用户看不出它是做什么的。**默认都关**，用户自己开。
         makeToggle(t, 'section.sidebarToggle', state.sidebarVisible, toggleSidebar),
-        makeToggle(t, 'section.headerToggle', state.headerVisible, toggleHeader),
         makeToggle(t, 'section.floatingToggle', state.floatingVisible, toggleFloating),
         modal !== null
           ? h(Modal, { spec: modal, t, onClose: closeModal, onRestart: confirmRestart })
@@ -1168,9 +1125,9 @@ window.__ModuleLoader__.load({
       const t = ctx.locale.bind(NS)
       currentT = t
 
-      // 读取三个入口的显示偏好（默认都显示）。
+      // 读取两个入口的显示偏好。**默认关闭**（`readPref` 的默认值见下），
+      // 用户需要时自己在插件详情页里打开——插件不主动往界面上塞东西。
       state.sidebarVisible = readPref(PREF_KEY)
-      state.headerVisible = readPref(PREF_HEADER_KEY)
       state.floatingVisible = readPref(PREF_FLOATING_KEY)
 
       ctx.effect(() => {
@@ -1216,15 +1173,6 @@ window.__ModuleLoader__.load({
         ctx.slots.register(
           { name: 'sidebar.footer.action', id: 'dsh-reload:button', order: 10, locale: NS },
           SidebarButton,
-        ),
-      )
-
-      // 主区域顶栏最左侧（会话标题左边）。root scope、当前无占用。
-      // 这是「侧边栏折叠后按钮消失」的兜底入口（Windows 上折叠会隐藏整个 footArea）。
-      ctx.slots.inject('conversation.header.leading', () =>
-        ctx.slots.register(
-          { name: 'conversation.header.leading', locale: NS },
-          HeaderButton,
         ),
       )
 

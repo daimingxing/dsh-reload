@@ -29,7 +29,6 @@ console.log('  id 与包名一致  :', idMatch?.[1] === pkg.name ? '是' : '否 
 // 槽位 id 是否与注册时一致。
 for (const slot of [
   'sidebar.footer.action',
-  'conversation.header.leading',
   'shell.overlay',
   'sidebar.panellist.actions',
   'plugins.bundle.config',
@@ -39,8 +38,8 @@ for (const slot of [
   console.log(`  注册槽位 ${slot}: ${used ? '已引用' : '未引用'}`)
 }
 
-// 已废弃的槽位不得再出现（入口已从「通用设置」撤掉）。
-for (const slot of ['settings.general.item']) {
+// 已废弃的槽位不得再出现。
+for (const slot of ['settings.general.item', 'conversation.header.leading']) {
   const used = clientSource.includes(`name: '${slot}'`)
   console.log(`  废弃槽位 ${slot}: ${used ? '⚠️ 仍在注册' : '已清除'}`)
 }

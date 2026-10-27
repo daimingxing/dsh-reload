@@ -188,7 +188,6 @@ function renderTree(node, depth = 0) {
  *  - `sidebar.footer.action`      → `{ wide }`
  *  - `plugins.bundle.config`      → `{ view, form? }`，插件页按 `view: 'page'` 渲染
  *  - `settings.action`            → 空接口（`children?: never`），只带 `t`
- *  - `conversation.header.leading` → 空接口，只带 `t`
  *  - `shell.overlay`              → 无 owner props，只带 `t`
  *  - `sidebar.panellist.actions`  → `{ entries, onOpen, onPinnedChange, onDismiss }`
  *
