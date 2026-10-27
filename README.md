@@ -67,11 +67,11 @@
 
 插件自己的设置页，两个按钮加两个开关：
 
-![插件设置页：热重载与重启客户端按钮，以及侧边栏按钮、右下角悬浮按钮的显示开关](assets/plugin-page.png)
+![插件设置页：热重载与重启客户端按钮，以及侧边栏按钮、右下角悬浮按钮的显示开关](https://raw.githubusercontent.com/daimingxing/dsh-reload/main/assets/plugin-page.png)
 
 打开设置面板时，顶栏右侧始终有这两个按钮，任何设置页都能点到：
 
-![设置面板顶栏右侧的热重载与重启客户端按钮](assets/settings-header.png)
+![设置面板顶栏右侧的热重载与重启客户端按钮](https://raw.githubusercontent.com/daimingxing/dsh-reload/main/assets/settings-header.png)
 
 > 插件默认**不往界面上加任何东西**，需要侧边栏按钮或右下角悬浮按钮时，自己去插件页打开开关。
 
